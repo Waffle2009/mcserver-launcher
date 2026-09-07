@@ -14,6 +14,7 @@ public partial class MainWindow : Window
 {
     private readonly ServerInstanceStore _store = new();
     private readonly ObservableCollection<ServerSession> _sessions = new();
+    private readonly SystemUsageMonitor _systemUsageMonitor = new();
     private ServerSession? _selected;
     private bool _isLoadingSession;
 
@@ -21,6 +22,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         ServerListBox.ItemsSource = _sessions;
+        _systemUsageMonitor.UsageUpdated += usage => Dispatcher.Invoke(() => OnSystemUsageUpdated(usage));
 
         foreach (var instance in _store.Load())
             AddSession(instance, select: false);
@@ -29,6 +31,14 @@ public partial class MainWindow : Window
             ServerListBox.SelectedIndex = 0;
         else
             LoadSelectedIntoUi();
+    }
+
+    private void OnSystemUsageUpdated(SystemUsage usage)
+    {
+        SystemCpuText.Text = $"{usage.CpuPercent:0.0}%";
+        var usedGb = usage.UsedMemoryBytes / 1024.0 / 1024.0 / 1024.0;
+        var totalGb = usage.TotalMemoryBytes / 1024.0 / 1024.0 / 1024.0;
+        SystemMemoryText.Text = $"{usedGb:0.0} / {totalGb:0.0} GB";
     }
 
     private ServerType SelectedServerType =>
@@ -365,6 +375,7 @@ public partial class MainWindow : Window
     {
         PersistUiIntoSelected();
         SaveInstances();
+        _systemUsageMonitor.Dispose();
         base.OnClosing(e);
     }
 }

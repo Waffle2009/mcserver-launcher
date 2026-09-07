@@ -16,6 +16,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Width="34" Height="34" CornerRadius="9" Background="{StaticResource AccentBrush}"
@@ -32,6 +33,24 @@
                 <TextBlock Text="複数のサーバーをまとめて管理" FontSize="11.5"
                            Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,0" />
             </StackPanel>
+
+            <!-- System resource usage (always visible) -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Style="{StaticResource StatTile}" Margin="0,0,10,0" MinWidth="110">
+                    <StackPanel>
+                        <TextBlock Text="CPU使用率" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
+                        <TextBlock x:Name="SystemCpuText" Text="--" Foreground="{StaticResource TextBrush}"
+                                   FontSize="18" FontWeight="Bold" Margin="0,2,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource StatTile}" MinWidth="150">
+                    <StackPanel>
+                        <TextBlock Text="メモリ使用率" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
+                        <TextBlock x:Name="SystemMemoryText" Text="--" Foreground="{StaticResource TextBrush}"
+                                   FontSize="18" FontWeight="Bold" Margin="0,2,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </Grid>
 
         <!-- Sidebar + content -->
@@ -47,13 +66,17 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Text="サーバー一覧" Style="{StaticResource SectionTitle}" />
 
-                    <ListBox Grid.Row="1" x:Name="ServerListBox"
+                    <Button Grid.Row="1" x:Name="AddServerButton" Content="+ サーバーを追加" Margin="0,0,0,10"
+                            HorizontalAlignment="Stretch" Style="{StaticResource BaseButton}"
+                            Click="AddServerButton_Click" />
+
+                    <ListBox Grid.Row="2" x:Name="ServerListBox"
                              ItemContainerStyle="{StaticResource ServerListItem}"
                              SelectionChanged="ServerListBox_SelectionChanged">
                         <ListBox.ItemTemplate>
@@ -71,10 +94,6 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-
-                    <Button Grid.Row="2" x:Name="AddServerButton" Content="+ サーバーを追加" Margin="0,10,0,0"
-                            HorizontalAlignment="Stretch" Style="{StaticResource BaseButton}"
-                            Click="AddServerButton_Click" />
                 </Grid>
             </Border>
 
