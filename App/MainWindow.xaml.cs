@@ -3,7 +3,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using McServerLauncher.Core.Instances;
 using McServerLauncher.Core.ProcessManagement;
 using McServerLauncher.Core.Servers;
@@ -17,23 +19,33 @@ public partial class MainWindow : Window
     private readonly ServerInstanceStore _store = new();
     private readonly ObservableCollection<ServerSession> _sessions = new();
     private readonly SystemUsageMonitor _systemUsageMonitor = new();
+    private readonly UsageHistoryStore _usageHistory = new();
     private ServerSession? _selected;
     private bool _isLoadingSession;
 
     public MainWindow()
     {
         InitializeComponent();
-        ServerListBox.ItemsSource = _sessions;
+
+        var groupedView = CollectionViewSource.GetDefaultView(_sessions);
+        groupedView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ServerSession.TypeText)));
+        ServerListBox.ItemsSource = groupedView;
+
         AppVersionText.Text = GetAppVersionText();
+
+        SystemCpuGauge.Title = "全体CPU使用率";
+        SystemMemGauge.Title = "全体メモリ使用率";
+        RunningCountGauge.Title = "稼働中サーバー数";
+        TotalServerCpuGauge.Title = "サーバー合計CPU使用率";
+        CpuHistoryChart.SetProvider(_usageHistory.GetSamples);
+
         _systemUsageMonitor.UsageUpdated += usage => Dispatcher.Invoke(() => OnSystemUsageUpdated(usage));
 
         foreach (var instance in _store.Load())
             AddSession(instance, select: false);
 
-        if (_sessions.Count > 0)
-            ServerListBox.SelectedIndex = 0;
-        else
-            LoadSelectedIntoUi();
+        ShowOverviewPage();
+        UpdateAggregateGauges();
     }
 
     private static string GetAppVersionText()
@@ -57,6 +69,38 @@ public partial class MainWindow : Window
         var usedGb = usage.UsedMemoryBytes / 1024.0 / 1024.0 / 1024.0;
         var totalGb = usage.TotalMemoryBytes / 1024.0 / 1024.0 / 1024.0;
         SystemMemoryText.Text = $"{usedGb:0.0} / {totalGb:0.0} GB";
+
+        var memPercent = usage.TotalMemoryBytes > 0 ? usage.UsedMemoryBytes * 100.0 / usage.TotalMemoryBytes : 0;
+        SystemCpuGauge.SetValue(usage.CpuPercent, $"{usage.CpuPercent:0.0}%");
+        SystemMemGauge.SetValue(memPercent, $"{usedGb:0.0}/{totalGb:0.0}GB");
+        _usageHistory.AddSample(usage.CpuPercent, memPercent);
+    }
+
+    private void UpdateAggregateGauges()
+    {
+        var total = _sessions.Count;
+        var running = _sessions.Count(s => s.IsRunning);
+        var runningPercent = total > 0 ? running * 100.0 / total : 0;
+        RunningCountGauge.SetValue(runningPercent, $"{running} / {total}");
+
+        var totalCpu = _sessions.Where(s => s.IsRunning).Sum(s => s.CpuPercent);
+        TotalServerCpuGauge.SetValue(Math.Min(totalCpu, 100), $"{totalCpu:0}%");
+    }
+
+    private void ShowOverviewPage()
+    {
+        OverviewNavItem.Background = (Brush)FindResource("AccentSoftBrush");
+        OverviewNavItem.BorderBrush = (Brush)FindResource("AccentBrush");
+        ContentScroller.Visibility = Visibility.Collapsed;
+        OverviewScroller.Visibility = Visibility.Visible;
+    }
+
+    private void OverviewNavItem_Click(object sender, MouseButtonEventArgs e)
+    {
+        PersistUiIntoSelected();
+        SaveInstances();
+        ServerListBox.SelectedItem = null;
+        ShowOverviewPage();
     }
 
     private ServerType SelectedServerType =>
@@ -79,6 +123,7 @@ public partial class MainWindow : Window
 
         _sessions.Add(session);
         if (select) ServerListBox.SelectedItem = session;
+        UpdateAggregateGauges();
         return session;
     }
 
@@ -101,12 +146,14 @@ public partial class MainWindow : Window
             StartButton.IsEnabled = session.Instance.ExecutablePath is not null;
             StopButton.IsEnabled = false;
         }
+        UpdateAggregateGauges();
     }
 
-    private static void OnSessionResourceUsage(ServerSession session, ResourceUsage usage)
+    private void OnSessionResourceUsage(ServerSession session, ResourceUsage usage)
     {
         session.CpuPercent = usage.CpuPercent;
         session.MemoryBytes = usage.MemoryBytes;
+        UpdateAggregateGauges();
     }
 
     private void SaveInstances() => _store.Save(_sessions.Select(s => s.Instance));
@@ -121,21 +168,21 @@ public partial class MainWindow : Window
 
     private void ServerListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        // Overviewページへ切り替える際にSelectedItemをnullにするので、その場合は何もしない
+        if (ServerListBox.SelectedItem is not ServerSession session) return;
+
         PersistUiIntoSelected();
-        _selected = ServerListBox.SelectedItem as ServerSession;
+        _selected = session;
         LoadSelectedIntoUi();
     }
 
     private void LoadSelectedIntoUi()
     {
-        if (_selected is null)
-        {
-            ContentScroller.Visibility = Visibility.Collapsed;
-            EmptyStatePanel.Visibility = Visibility.Visible;
-            return;
-        }
+        if (_selected is null) return;
 
-        EmptyStatePanel.Visibility = Visibility.Collapsed;
+        OverviewNavItem.Background = (Brush)FindResource("NeutralButtonBrush");
+        OverviewNavItem.BorderBrush = Brushes.Transparent;
+        OverviewScroller.Visibility = Visibility.Collapsed;
         ContentScroller.Visibility = Visibility.Visible;
         ContentPanel.DataContext = _selected;
 
@@ -330,17 +377,24 @@ public partial class MainWindow : Window
 
         session.Instance.MemoryMb = memoryMb;
         SaveInstances();
+        StartSession(session);
+    }
+
+    private void StartSession(ServerSession session)
+    {
+        if (session.Instance.ExecutablePath is null) return;
 
         try
         {
             OnSessionOutput(session, "サーバーを起動しています...");
-            session.ProcessManager.Start(session.Instance.Type, session.Instance.ExecutablePath, memoryMb);
+            session.ProcessManager.Start(session.Instance.Type, session.Instance.ExecutablePath, session.Instance.MemoryMb);
             session.IsRunning = true;
             if (session == _selected)
             {
                 StartButton.IsEnabled = false;
                 StopButton.IsEnabled = true;
             }
+            UpdateAggregateGauges();
         }
         catch (Exception ex)
         {
@@ -348,10 +402,8 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void StopButton_Click(object sender, RoutedEventArgs e)
+    private async Task StopSessionAsync(ServerSession session)
     {
-        if (_selected is null) return;
-        var session = _selected;
         try
         {
             await session.ProcessManager.StopAsync();
@@ -360,6 +412,34 @@ public partial class MainWindow : Window
         {
             OnSessionOutput(session, $"エラー: サーバーの停止に失敗しました - {ex.Message}");
         }
+    }
+
+    private void StartAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var session in _sessions.Where(s => !s.IsRunning && s.Instance.ExecutablePath is not null).ToList())
+            StartSession(session);
+    }
+
+    private async void StopAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var session in _sessions.Where(s => s.IsRunning).ToList())
+            await StopSessionAsync(session);
+    }
+
+    private async void RestartAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var session in _sessions.Where(s => s.IsRunning).ToList())
+        {
+            await StopSessionAsync(session);
+            StartSession(session);
+        }
+    }
+
+    private async void StopButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selected is null) return;
+        var session = _selected;
+        await StopSessionAsync(session);
     }
 
     private async void SendCommandButton_Click(object sender, RoutedEventArgs e) => await SendCommandAsync();

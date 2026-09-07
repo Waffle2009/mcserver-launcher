@@ -1,0 +1,34 @@
+<UserControl x:Class="McServerLauncher.App.GaugeCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border Style="{StaticResource StatTile}" Padding="18,16">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock x:Name="TitleText" Grid.Row="0" Foreground="{StaticResource MutedTextBrush}"
+                       FontSize="12" Margin="0,0,0,12" HorizontalAlignment="Center" />
+
+            <Grid Grid.Row="1" Width="104" Height="104" HorizontalAlignment="Center">
+                <Ellipse Stroke="{StaticResource BorderBrush}" StrokeThickness="9" Width="104" Height="104" />
+                <Path x:Name="ArcPath" Stroke="{StaticResource AccentBrush}" StrokeThickness="9"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <TextBlock x:Name="ValueText" Text="--" FontSize="18" FontWeight="Bold"
+                           Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="0,14,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="BarFillColumn" Width="0*" />
+                    <ColumnDefinition x:Name="BarEmptyColumn" Width="100*" />
+                </Grid.ColumnDefinitions>
+                <Border Grid.ColumnSpan="2" Height="6" CornerRadius="3" Background="{StaticResource NeutralButtonBrush}" />
+                <Border x:Name="BarFill" Grid.Column="0" Height="6" CornerRadius="3" Background="{StaticResource AccentBrush}" />
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

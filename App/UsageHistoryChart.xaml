@@ -1,0 +1,39 @@
+<UserControl x:Class="McServerLauncher.App.UsageHistoryChart"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border Style="{StaticResource CardBorder}" Margin="0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="CPU使用率の推移" Style="{StaticResource SectionTitle}" Margin="0" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="Tab1h" Content="1時間" Tag="1" Click="PeriodTab_Click"
+                            Style="{StaticResource BaseButton}" Padding="10,5" Margin="0,0,4,0" />
+                    <Button x:Name="Tab6h" Content="6時間" Tag="6" Click="PeriodTab_Click"
+                            Style="{StaticResource BaseButton}" Padding="10,5" Margin="0,0,4,0" />
+                    <Button x:Name="Tab24h" Content="24時間" Tag="24" Click="PeriodTab_Click"
+                            Style="{StaticResource BaseButton}" Padding="10,5" Margin="0,0,4,0" />
+                    <Button x:Name="Tab7d" Content="7日" Tag="168" Click="PeriodTab_Click"
+                            Style="{StaticResource BaseButton}" Padding="10,5" Margin="0,0,4,0" />
+                    <Button x:Name="Tab30d" Content="30日" Tag="720" Click="PeriodTab_Click"
+                            Style="{StaticResource BaseButton}" Padding="10,5" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" x:Name="ChartArea" ClipToBounds="True">
+                <Canvas x:Name="ChartCanvas" />
+                <TextBlock x:Name="NoDataText" Text="データがまだありません(しばらく起動したままにしてください)"
+                           Foreground="{StaticResource MutedTextBrush}" FontSize="12"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>
