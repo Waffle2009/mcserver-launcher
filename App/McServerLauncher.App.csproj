@@ -9,10 +9,20 @@
     <Nullable>enable</Nullable>
     <AssemblyName>McServerLauncher</AssemblyName>
     <RootNamespace>McServerLauncher.App</RootNamespace>
+    <StartupObject>McServerLauncher.App.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Core\McServerLauncher.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
 </Project>
