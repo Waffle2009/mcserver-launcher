@@ -35,8 +35,8 @@ public partial class MainWindow : Window
 
         SystemCpuGauge.Title = "全体CPU使用率";
         SystemMemGauge.Title = "全体メモリ使用率";
-        RunningCountGauge.Title = "稼働中サーバー数";
-        TotalServerCpuGauge.Title = "サーバー合計CPU使用率";
+        RunningCountGauge.Title = "BDS合計CPU使用率";
+        TotalServerCpuGauge.Title = "CPU温度";
         CpuHistoryChart.SetProvider(_usageHistory.GetSamples);
 
         _systemUsageMonitor.UsageUpdated += usage => Dispatcher.Invoke(() => OnSystemUsageUpdated(usage));
@@ -65,26 +65,24 @@ public partial class MainWindow : Window
 
     private void OnSystemUsageUpdated(SystemUsage usage)
     {
-        SystemCpuText.Text = $"{usage.CpuPercent:0.0}%";
         var usedGb = usage.UsedMemoryBytes / 1024.0 / 1024.0 / 1024.0;
         var totalGb = usage.TotalMemoryBytes / 1024.0 / 1024.0 / 1024.0;
-        SystemMemoryText.Text = $"{usedGb:0.0} / {totalGb:0.0} GB";
 
         var memPercent = usage.TotalMemoryBytes > 0 ? usage.UsedMemoryBytes * 100.0 / usage.TotalMemoryBytes : 0;
         SystemCpuGauge.SetValue(usage.CpuPercent, $"{usage.CpuPercent:0.0}%");
         SystemMemGauge.SetValue(memPercent, $"{usedGb:0.0}/{totalGb:0.0}GB");
         _usageHistory.AddSample(usage.CpuPercent, memPercent);
+
+        if (usage.CpuTemperatureCelsius is { } temp)
+            TotalServerCpuGauge.SetValue(temp, $"{temp:0}°C");
+        else
+            TotalServerCpuGauge.SetValue(0, "--");
     }
 
     private void UpdateAggregateGauges()
     {
-        var total = _sessions.Count;
-        var running = _sessions.Count(s => s.IsRunning);
-        var runningPercent = total > 0 ? running * 100.0 / total : 0;
-        RunningCountGauge.SetValue(runningPercent, $"{running} / {total}");
-
-        var totalCpu = _sessions.Where(s => s.IsRunning).Sum(s => s.CpuPercent);
-        TotalServerCpuGauge.SetValue(Math.Min(totalCpu, 100), $"{totalCpu:0}%");
+        var bdsCpu = _sessions.Where(s => s.IsRunning && s.Instance.Type == ServerType.Bds).Sum(s => s.CpuPercent);
+        RunningCountGauge.SetValue(Math.Min(bdsCpu, 100), $"{bdsCpu:0}%");
     }
 
     private void ShowOverviewPage()

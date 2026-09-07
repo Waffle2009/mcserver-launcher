@@ -1,8 +1,12 @@
+using System.Management;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+
+[assembly: SupportedOSPlatform("windows")]
 
 namespace McServerLauncher.Core.ProcessManagement;
 
-public readonly record struct SystemUsage(double CpuPercent, long UsedMemoryBytes, long TotalMemoryBytes);
+public readonly record struct SystemUsage(double CpuPercent, long UsedMemoryBytes, long TotalMemoryBytes, double? CpuTemperatureCelsius);
 
 /// <summary>Samples machine-wide CPU and memory usage on a timer, independent of any running server process.</summary>
 public sealed class SystemUsageMonitor : IDisposable
@@ -11,6 +15,8 @@ public sealed class SystemUsageMonitor : IDisposable
     private long _lastIdleTicks;
     private long _lastTotalTicks;
     private bool _hasSample;
+    private int _tickCount;
+    private double? _lastTemperature;
 
     public event Action<SystemUsage>? UsageUpdated;
 
@@ -45,7 +51,33 @@ public sealed class SystemUsageMonitor : IDisposable
             usedMemory = totalMemory - (long)memStatus.ullAvailPhys;
         }
 
-        UsageUpdated?.Invoke(new SystemUsage(cpuPercent, usedMemory, totalMemory));
+        // WMIの温度取得は数十msかかることがあるため、毎秒ではなく3秒おきに行い間は前回値を使い回す
+        if (_tickCount++ % 3 == 0)
+            _lastTemperature = ReadCpuTemperatureCelsius();
+
+        UsageUpdated?.Invoke(new SystemUsage(cpuPercent, usedMemory, totalMemory, _lastTemperature));
+    }
+
+    private static double? ReadCpuTemperatureCelsius()
+    {
+        try
+        {
+            using var searcher = new ManagementObjectSearcher(@"root\WMI",
+                "SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature");
+            foreach (ManagementBaseObject obj in searcher.Get())
+            {
+                using (obj)
+                {
+                    var tenthsOfKelvin = Convert.ToDouble(obj["CurrentTemperature"]);
+                    return tenthsOfKelvin / 10.0 - 273.15;
+                }
+            }
+        }
+        catch
+        {
+            // 多くのPCではACPI経由の温度情報が公開されておらず取得できないため、その場合は未取得扱いにする
+        }
+        return null;
     }
 
     private static long ToTicks(System.Runtime.InteropServices.ComTypes.FILETIME ft) =>

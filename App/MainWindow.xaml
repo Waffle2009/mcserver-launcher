@@ -42,24 +42,6 @@
                 <TextBlock Text="複数のサーバーをまとめて管理" FontSize="11.5"
                            Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,0" />
             </StackPanel>
-
-            <!-- System resource usage (always visible) -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Style="{StaticResource StatTile}" Margin="0,0,10,0" MinWidth="110">
-                    <StackPanel>
-                        <TextBlock Text="CPU使用率" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
-                        <TextBlock x:Name="SystemCpuText" Text="--" Foreground="{StaticResource TextBrush}"
-                                   FontSize="18" FontWeight="Bold" Margin="0,2,0,0" />
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource StatTile}" MinWidth="150">
-                    <StackPanel>
-                        <TextBlock Text="メモリ使用率" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
-                        <TextBlock x:Name="SystemMemoryText" Text="--" Foreground="{StaticResource TextBrush}"
-                                   FontSize="18" FontWeight="Bold" Margin="0,2,0,0" />
-                    </StackPanel>
-                </Border>
-            </StackPanel>
         </Grid>
 
         <!-- Sidebar + content -->
