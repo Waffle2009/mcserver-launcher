@@ -10,18 +10,28 @@
             </Grid.RowDefinitions>
 
             <TextBlock x:Name="TitleText" Grid.Row="0" Foreground="{StaticResource MutedTextBrush}"
-                       FontSize="12" Margin="0,0,0,12" HorizontalAlignment="Center" />
+                       FontSize="13" FontWeight="SemiBold" Margin="0,0,0,14" HorizontalAlignment="Left" />
 
-            <Grid Grid.Row="1" Width="104" Height="104" HorizontalAlignment="Center">
-                <Ellipse Stroke="{StaticResource BorderBrush}" StrokeThickness="9" Width="104" Height="104" />
-                <Path x:Name="ArcPath" Stroke="{StaticResource AccentBrush}" StrokeThickness="9"
-                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                <TextBlock x:Name="ValueText" Text="--" FontSize="18" FontWeight="Bold"
-                           Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
+            <Grid Grid.Row="1" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="ValueText" Grid.Column="0" Text="--" FontSize="26" FontWeight="Bold"
+                           Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
+
+                <Grid Grid.Column="1" Width="64" Height="64" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Ellipse Stroke="{StaticResource BorderBrush}" StrokeThickness="6" Width="64" Height="64" />
+                    <Path x:Name="ArcPath" Stroke="{StaticResource AccentBrush}" StrokeThickness="6"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                    <TextBlock x:Name="PercentText" Text="--" FontSize="13" FontWeight="Bold"
+                               Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Grid>
             </Grid>
 
-            <Grid Grid.Row="2" Margin="0,14,0,0">
+            <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="BarFillColumn" Width="0*" />
                     <ColumnDefinition x:Name="BarEmptyColumn" Width="100*" />

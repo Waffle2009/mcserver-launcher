@@ -7,8 +7,8 @@ namespace McServerLauncher.App;
 /// <summary>A dashboard tile showing a circular percentage gauge plus a thin bar underneath.</summary>
 public partial class GaugeCard : UserControl
 {
-    private static readonly Point Center = new(52, 52);
-    private const double Radius = 47.5;
+    private static readonly Point Center = new(32, 32);
+    private const double Radius = 29;
 
     public GaugeCard()
     {
@@ -33,6 +33,7 @@ public partial class GaugeCard : UserControl
     {
         var clamped = Math.Clamp(percent, 0, 100);
         ValueText.Text = valueText;
+        PercentText.Text = $"{clamped:0}%";
         ArcPath.Data = BuildArcGeometry(clamped);
         BarFillColumn.Width = new GridLength(clamped, GridUnitType.Star);
         BarEmptyColumn.Width = new GridLength(100 - clamped, GridUnitType.Star);
