@@ -7,7 +7,7 @@ namespace McServerLauncher.App;
 
 public static class Program
 {
-    private const string UpdateRepoUrl = "https://github.com/Waffle2009/mcserver-launcher";
+    internal const string UpdateRepoUrl = "https://github.com/Waffle2009/mcserver-launcher";
 
     [STAThread]
     public static void Main(string[] args)

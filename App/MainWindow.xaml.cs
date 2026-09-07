@@ -7,6 +7,8 @@ using System.Windows.Input;
 using McServerLauncher.Core.Instances;
 using McServerLauncher.Core.ProcessManagement;
 using McServerLauncher.Core.Servers;
+using Velopack;
+using Velopack.Sources;
 
 namespace McServerLauncher.App;
 
@@ -22,6 +24,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         ServerListBox.ItemsSource = _sessions;
+        AppVersionText.Text = GetAppVersionText();
         _systemUsageMonitor.UsageUpdated += usage => Dispatcher.Invoke(() => OnSystemUsageUpdated(usage));
 
         foreach (var instance in _store.Load())
@@ -31,6 +34,21 @@ public partial class MainWindow : Window
             ServerListBox.SelectedIndex = 0;
         else
             LoadSelectedIntoUi();
+    }
+
+    private static string GetAppVersionText()
+    {
+        try
+        {
+            var mgr = new UpdateManager(new GithubSource(Program.UpdateRepoUrl, null, false));
+            if (mgr.IsInstalled)
+                return $"v{mgr.CurrentVersion}";
+        }
+        catch
+        {
+            // インストール情報が読めない場合は開発版扱いにする
+        }
+        return "開発版";
     }
 
     private void OnSystemUsageUpdated(SystemUsage usage)
