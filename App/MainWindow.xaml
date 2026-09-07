@@ -5,7 +5,7 @@
         MinHeight="600" MinWidth="760"
         Background="{StaticResource BgBrush}"
         FontFamily="Segoe UI">
-    <Grid Margin="16">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -14,21 +14,42 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,14">
-            <TextBlock Text="かんたんマイクラサーバー" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-            <Border Margin="12,0,0,0" Padding="8,3" CornerRadius="10" VerticalAlignment="Center">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background" Value="{StaticResource NeutralButtonBrush}" />
-                    </Style>
-                </Border.Style>
+        <Grid Grid.Row="0" Margin="0,0,0,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Mark -->
+            <Border Grid.Column="0" Width="34" Height="34" CornerRadius="9" Background="{StaticResource AccentBrush}"
+                    VerticalAlignment="Center" Effect="{StaticResource ButtonShadow}">
+                <Grid Width="14" Height="14">
+                    <Rectangle Fill="#FFFFFF" Opacity="0.95" />
+                    <Rectangle Fill="{StaticResource AccentPressedBrush}" Width="14" Height="5"
+                               VerticalAlignment="Bottom" Opacity="0.55" />
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+                <TextBlock Text="かんたんマイクラサーバー" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
+                <TextBlock Text="サーバーの導入から起動・操作までをひとつの画面で" FontSize="11.5"
+                           Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,0" />
+            </StackPanel>
+
+            <Border Grid.Column="2" Padding="10,5" CornerRadius="20" VerticalAlignment="Center"
+                    Background="{StaticResource NeutralButtonBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal">
-                    <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="{StaticResource StatusIdleBrush}" VerticalAlignment="Center" />
-                    <TextBlock x:Name="StatusText" Text="停止中" Margin="6,0,0,0" FontSize="12"
-                               Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" />
+                    <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="{StaticResource StatusIdleBrush}" VerticalAlignment="Center">
+                        <Ellipse.Effect>
+                            <DropShadowEffect Color="#4CAF50" BlurRadius="8" ShadowDepth="0" Opacity="0.9" />
+                        </Ellipse.Effect>
+                    </Ellipse>
+                    <TextBlock x:Name="StatusText" Text="停止中" Margin="7,0,0,0" FontSize="12"
+                               Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
                 </StackPanel>
             </Border>
-        </StackPanel>
+        </Grid>
 
         <!-- Server setup card -->
         <Border Grid.Row="1" Style="{StaticResource CardBorder}">
@@ -110,9 +131,10 @@
 
                 <TextBlock Grid.Row="0" Text="コンソール" Style="{StaticResource SectionTitle}" />
 
-                <Border Grid.Row="1" Background="{StaticResource LogBgBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,10">
+                <Border Grid.Row="1" Background="{StaticResource LogBgBrush}" BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="9" Padding="12" Margin="0,0,0,10">
                     <TextBox x:Name="LogBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto" FontFamily="Consolas" FontSize="12"
+                             HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono,Consolas" FontSize="12"
                              TextWrapping="NoWrap" Background="Transparent" Foreground="{StaticResource LogTextBrush}"
                              BorderThickness="0" />
                 </Border>

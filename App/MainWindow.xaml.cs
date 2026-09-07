@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using McServerLauncher.Core.ProcessManagement;
 using McServerLauncher.Core.Servers;
 
@@ -51,6 +52,21 @@ public partial class MainWindow : Window
     {
         StatusText.Text = isRunning ? "起動中" : "停止中";
         StatusDot.Fill = (Brush)FindResource(isRunning ? "StatusRunningBrush" : "StatusIdleBrush");
+
+        StatusDot.BeginAnimation(UIElement.OpacityProperty, null);
+        if (isRunning)
+        {
+            var pulse = new DoubleAnimation(1.0, 0.35, TimeSpan.FromSeconds(0.9))
+            {
+                AutoReverse = true,
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            StatusDot.BeginAnimation(UIElement.OpacityProperty, pulse);
+        }
+        else
+        {
+            StatusDot.Opacity = 1.0;
+        }
     }
 
     private void UpdateDefaultInstallDir()
