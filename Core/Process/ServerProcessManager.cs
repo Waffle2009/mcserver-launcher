@@ -6,9 +6,13 @@ namespace McServerLauncher.Core.ProcessManagement;
 public sealed class ServerProcessManager : IDisposable
 {
     private System.Diagnostics.Process? _process;
+    private System.Threading.Timer? _usageTimer;
+    private TimeSpan _lastCpuTime;
+    private DateTime _lastSampleTime;
 
     public event Action<string>? OutputReceived;
     public event Action<int>? Exited;
+    public event Action<ResourceUsage>? ResourceUsageUpdated;
 
     public bool IsRunning => _process is { HasExited: false };
 
@@ -47,11 +51,52 @@ public sealed class ServerProcessManager : IDisposable
         _process = new System.Diagnostics.Process { StartInfo = psi, EnableRaisingEvents = true };
         _process.OutputDataReceived += (_, e) => { if (e.Data != null) OutputReceived?.Invoke(e.Data); };
         _process.ErrorDataReceived += (_, e) => { if (e.Data != null) OutputReceived?.Invoke(e.Data); };
-        _process.Exited += (_, _) => Exited?.Invoke(_process.ExitCode);
+        _process.Exited += (_, _) =>
+        {
+            StopUsageMonitor();
+            Exited?.Invoke(_process.ExitCode);
+        };
 
         _process.Start();
         _process.BeginOutputReadLine();
         _process.BeginErrorReadLine();
+        StartUsageMonitor();
+    }
+
+    private void StartUsageMonitor()
+    {
+        _lastCpuTime = TimeSpan.Zero;
+        _lastSampleTime = DateTime.UtcNow;
+        _usageTimer = new System.Threading.Timer(_ => SampleUsage(), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
+    private void SampleUsage()
+    {
+        if (_process is not { HasExited: false } process) return;
+        try
+        {
+            process.Refresh();
+            var now = DateTime.UtcNow;
+            var cpuTime = process.TotalProcessorTime;
+            var elapsedMs = (now - _lastSampleTime).TotalMilliseconds;
+            var cpuPercent = elapsedMs > 0
+                ? Math.Clamp((cpuTime - _lastCpuTime).TotalMilliseconds / (Environment.ProcessorCount * elapsedMs) * 100.0, 0, 100)
+                : 0;
+            _lastCpuTime = cpuTime;
+            _lastSampleTime = now;
+            ResourceUsageUpdated?.Invoke(new ResourceUsage(cpuPercent, process.WorkingSet64));
+        }
+        catch (InvalidOperationException)
+        {
+            // Process exited between the HasExited check above and reading its stats.
+        }
+    }
+
+    private void StopUsageMonitor()
+    {
+        _usageTimer?.Dispose();
+        _usageTimer = null;
+        ResourceUsageUpdated?.Invoke(new ResourceUsage(0, 0));
     }
 
     public async Task SendCommandAsync(string command)
@@ -65,5 +110,9 @@ public sealed class ServerProcessManager : IDisposable
 
     public Task StopAsync() => SendCommandAsync("stop");
 
-    public void Dispose() => _process?.Dispose();
+    public void Dispose()
+    {
+        _usageTimer?.Dispose();
+        _process?.Dispose();
+    }
 }
