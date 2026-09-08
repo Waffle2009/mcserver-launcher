@@ -11,4 +11,5 @@ public sealed class ServerInstance
     public string? ExecutablePath { get; set; }
     public string? Version { get; set; }
     public int MemoryMb { get; set; } = 2048;
+    public string? LevelType { get; set; }
 }

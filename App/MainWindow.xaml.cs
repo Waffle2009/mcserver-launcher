@@ -299,7 +299,12 @@ public partial class MainWindow : Window
         var dialog = new AddServerDialog { Owner = this };
         if (dialog.ShowDialog() != true) return;
 
-        var instance = new ServerInstance { Name = dialog.ServerName };
+        var instance = new ServerInstance
+        {
+            Name = dialog.ServerName,
+            Type = dialog.SelectedType,
+            LevelType = dialog.SelectedLevelType
+        };
         AddSession(instance);
         SaveInstances();
     }
@@ -386,6 +391,12 @@ public partial class MainWindow : Window
 
             if (type != ServerType.Bds)
                 EulaHelper.Accept(targetDir);
+
+            if (!string.IsNullOrEmpty(session.Instance.LevelType))
+                ServerPropertiesFile.Save(targetDir, new[]
+                {
+                    new KeyValuePair<string, string>("level-type", session.Instance.LevelType)
+                });
 
             session.Instance.Type = type;
             session.Instance.InstallDir = targetDir;

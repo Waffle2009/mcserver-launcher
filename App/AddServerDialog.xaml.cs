@@ -1,10 +1,14 @@
 using System.Windows;
+using System.Windows.Controls;
+using McServerLauncher.Core.Servers;
 
 namespace McServerLauncher.App;
 
 public partial class AddServerDialog : Window
 {
     public string ServerName { get; private set; } = "";
+    public ServerType SelectedType { get; private set; } = ServerType.Paper;
+    public string SelectedLevelType { get; private set; } = "DEFAULT";
 
     public AddServerDialog()
     {
@@ -22,6 +26,8 @@ public partial class AddServerDialog : Window
         }
 
         ServerName = name;
+        SelectedType = Enum.Parse<ServerType>((string)((ComboBoxItem)ServerTypeCombo.SelectedItem).Tag);
+        SelectedLevelType = (string)((ComboBoxItem)MapCombo.SelectedItem).Tag;
         DialogResult = true;
     }
 
