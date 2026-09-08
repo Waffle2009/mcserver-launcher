@@ -640,19 +640,27 @@ public partial class MainWindow : Window
             return;
         }
 
-        var rows = new List<FileRow>();
-        foreach (var dir in Directory.GetDirectories(_currentFileDir).OrderBy(Path.GetFileName))
-            rows.Add(new FileRow { Name = Path.GetFileName(dir), FullPath = dir, IsDirectory = true });
-        foreach (var file in Directory.GetFiles(_currentFileDir).OrderBy(Path.GetFileName))
-            rows.Add(new FileRow
-            {
-                Name = Path.GetFileName(file),
-                FullPath = file,
-                IsDirectory = false,
-                SizeText = FormatSize(new FileInfo(file).Length)
-            });
+        try
+        {
+            var rows = new List<FileRow>();
+            foreach (var dir in Directory.GetDirectories(_currentFileDir).OrderBy(Path.GetFileName))
+                rows.Add(new FileRow { Name = Path.GetFileName(dir), FullPath = dir, IsDirectory = true });
+            foreach (var file in Directory.GetFiles(_currentFileDir).OrderBy(Path.GetFileName))
+                rows.Add(new FileRow
+                {
+                    Name = Path.GetFileName(file),
+                    FullPath = file,
+                    IsDirectory = false,
+                    SizeText = FormatSize(new FileInfo(file).Length)
+                });
 
-        FileListView.ItemsSource = rows;
+            FileListView.ItemsSource = rows;
+        }
+        catch (Exception ex)
+        {
+            FileListView.ItemsSource = Array.Empty<FileRow>();
+            OnSessionOutput(_selected, $"エラー: ファイル一覧の読み込みに失敗しました - {ex.Message}");
+        }
     }
 
     private static string FormatSize(long bytes)
@@ -713,10 +721,18 @@ public partial class MainWindow : Window
     private void LoadPropertiesList()
     {
         if (_selected is null) return;
-        var rows = ServerPropertiesFile.Load(_selected.Instance.InstallDir)
-            .Select(kv => new PropertyRow(kv.Key, kv.Value))
-            .ToList();
-        PropertiesListView.ItemsSource = rows;
+        try
+        {
+            var rows = ServerPropertiesFile.Load(_selected.Instance.InstallDir)
+                .Select(kv => new PropertyRow(kv.Key, kv.Value))
+                .ToList();
+            PropertiesListView.ItemsSource = rows;
+        }
+        catch (Exception ex)
+        {
+            PropertiesListView.ItemsSource = Array.Empty<PropertyRow>();
+            OnSessionOutput(_selected, $"エラー: 設定の読み込みに失敗しました - {ex.Message}");
+        }
     }
 
     private void ReloadPropertiesButton_Click(object sender, RoutedEventArgs e) => LoadPropertiesList();
@@ -783,8 +799,15 @@ public partial class MainWindow : Window
     private void RemovePermissionButton_Click(object sender, RoutedEventArgs e)
     {
         if (_selected is null || PermissionsListView.SelectedItem is not PermissionRow row) return;
-        PermissionsManager.Remove(_selected.Instance, row.Id);
-        LoadPermissionsList();
+        try
+        {
+            PermissionsManager.Remove(_selected.Instance, row.Id);
+            LoadPermissionsList();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"削除に失敗しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     // ----- バックアップ タブ -----
@@ -792,16 +815,24 @@ public partial class MainWindow : Window
     private void LoadBackupsList()
     {
         if (_selected is null) return;
-        var rows = BackupManager.List(_selected.Instance)
-            .Select(b => new BackupRow
-            {
-                FilePath = b.FilePath,
-                FileName = b.FileName,
-                CreatedAtText = b.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
-                SizeText = FormatSize(b.SizeBytes)
-            })
-            .ToList();
-        BackupsListView.ItemsSource = rows;
+        try
+        {
+            var rows = BackupManager.List(_selected.Instance)
+                .Select(b => new BackupRow
+                {
+                    FilePath = b.FilePath,
+                    FileName = b.FileName,
+                    CreatedAtText = b.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
+                    SizeText = FormatSize(b.SizeBytes)
+                })
+                .ToList();
+            BackupsListView.ItemsSource = rows;
+        }
+        catch (Exception ex)
+        {
+            BackupsListView.ItemsSource = Array.Empty<BackupRow>();
+            OnSessionOutput(_selected, $"エラー: バックアップ一覧の読み込みに失敗しました - {ex.Message}");
+        }
     }
 
     private void CreateBackupButton_Click(object sender, RoutedEventArgs e)
@@ -848,8 +879,15 @@ public partial class MainWindow : Window
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 
-        BackupManager.Delete(row.FilePath);
-        LoadBackupsList();
+        try
+        {
+            BackupManager.Delete(row.FilePath);
+            LoadBackupsList();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"削除に失敗しました: {ex.Message}", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     // ----- アドオン タブ -----
@@ -857,14 +895,23 @@ public partial class MainWindow : Window
     private void LoadAddonsList()
     {
         if (_selected is null) return;
-        var rows = AddonsManager.List(_selected.Instance)
-            .Select(a => new AddonRow { Entry = a })
-            .ToList();
-        AddonsListView.ItemsSource = rows;
 
         var isBds = _selected.Instance.Type == ServerType.Bds;
         AddAddonButton.Content = isBds ? "パックフォルダを追加..." : "プラグインを追加...";
         ToggleAddonButton.Visibility = isBds ? Visibility.Collapsed : Visibility.Visible;
+
+        try
+        {
+            var rows = AddonsManager.List(_selected.Instance)
+                .Select(a => new AddonRow { Entry = a })
+                .ToList();
+            AddonsListView.ItemsSource = rows;
+        }
+        catch (Exception ex)
+        {
+            AddonsListView.ItemsSource = Array.Empty<AddonRow>();
+            OnSessionOutput(_selected, $"エラー: アドオン一覧の読み込みに失敗しました - {ex.Message}");
+        }
     }
 
     private void AddAddonButton_Click(object sender, RoutedEventArgs e)
