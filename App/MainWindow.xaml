@@ -5,8 +5,20 @@
         Title="かんたんマイクラサーバー" Height="720" Width="1080"
         MinHeight="620" MinWidth="920"
         Background="{StaticResource BgBrush}"
-        FontFamily="Segoe UI">
-    <Grid Margin="20">
+        FontFamily="{StaticResource UiFont}">
+    <Grid>
+        <!-- HUD-style graph-paper backdrop, matches the web dashboard's body background -->
+        <Rectangle Fill="{StaticResource GridBackgroundBrush}" IsHitTestVisible="False" />
+
+        <!-- Corner bracket decorations, matches the web dashboard's .hud::before/::after -->
+        <Path Data="M0,20 L0,0 L20,0" Stroke="{StaticResource BorderBrush}" StrokeThickness="2"
+              Width="20" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16"
+              Opacity="0.7" IsHitTestVisible="False" />
+        <Path Data="M0,0 L20,0 L20,20" Stroke="{StaticResource BorderBrush}" StrokeThickness="2"
+              Width="20" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16"
+              Opacity="0.7" IsHitTestVisible="False" />
+
+        <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -20,8 +32,8 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Width="34" Height="34" CornerRadius="9" Background="{StaticResource AccentBrush}"
-                    VerticalAlignment="Center" Effect="{StaticResource ButtonShadow}">
+            <Border Grid.Column="0" Width="34" Height="34" CornerRadius="4" Background="{StaticResource AccentBrush}"
+                    VerticalAlignment="Center">
                 <Grid Width="14" Height="14">
                     <Rectangle Fill="#FFFFFF" Opacity="0.95" />
                     <Rectangle Fill="{StaticResource AccentPressedBrush}" Width="14" Height="5"
@@ -32,10 +44,10 @@
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="かんたんマイクラサーバー" FontSize="19" FontWeight="Bold" Foreground="{StaticResource TextBrush}" />
-                    <Border Margin="8,0,0,0" Padding="7,2" CornerRadius="10" VerticalAlignment="Center"
+                    <Border Margin="8,0,0,0" Padding="7,2" CornerRadius="3" VerticalAlignment="Center"
                             Background="{StaticResource NeutralButtonBrush}"
                             BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                        <TextBlock x:Name="AppVersionText" Text="v0.0.0" FontSize="10.5"
+                        <TextBlock x:Name="AppVersionText" Text="v0.0.0" FontSize="10.5" FontFamily="{StaticResource MonoFont}"
                                    Foreground="{StaticResource MutedTextBrush}" />
                     </Border>
                 </StackPanel>
@@ -68,9 +80,9 @@
                             HorizontalAlignment="Stretch" Style="{StaticResource BaseButton}"
                             Click="AddServerButton_Click" />
 
-                    <Border Grid.Row="2" x:Name="OverviewNavItem" Margin="0,0,0,10" Padding="10,9" CornerRadius="9"
-                            Background="{StaticResource AccentSoftBrush}" BorderBrush="{StaticResource AccentBrush}"
-                            BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="OverviewNavItem_Click">
+                    <Border Grid.Row="2" x:Name="OverviewNavItem" Margin="0,0,0,10" Padding="9,9" CornerRadius="0,3,3,0"
+                            Background="{StaticResource CardHoverBrush}" BorderBrush="{StaticResource AccentBrush}"
+                            BorderThickness="2,0,0,0" Cursor="Hand" MouseLeftButtonUp="OverviewNavItem_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#9638;" FontSize="12" Foreground="{StaticResource TextBrush}"
                                        VerticalAlignment="Center" />
@@ -132,9 +144,9 @@
                                        Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button x:Name="StartAllButton" Content="すべて起動" Margin="0,0,8,0"
-                                        Style="{StaticResource AccentButton}" Click="StartAllButton_Click" />
+                                        Style="{StaticResource StartButtonStyle}" Click="StartAllButton_Click" />
                                 <Button x:Name="RestartAllButton" Content="すべて再起動" Margin="0,0,8,0"
-                                        Style="{StaticResource BaseButton}" Click="RestartAllButton_Click" />
+                                        Style="{StaticResource RestartButtonStyle}" Click="RestartAllButton_Click" />
                                 <Button x:Name="StopAllButton" Content="すべて停止"
                                         Style="{StaticResource DangerButton}" Click="StopAllButton_Click" />
                             </StackPanel>
@@ -181,7 +193,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="17" FontWeight="Bold"
                                        Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
-                            <Border Grid.Column="1" Padding="10,5" CornerRadius="20" VerticalAlignment="Center"
+                            <Border Grid.Column="1" Padding="10,5" CornerRadius="3" VerticalAlignment="Center"
                                     Background="{StaticResource NeutralButtonBrush}"
                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                                 <StackPanel Orientation="Horizontal">
@@ -190,7 +202,7 @@
                                             <DropShadowEffect Color="#4CAF50" BlurRadius="8" ShadowDepth="0" Opacity="0.9" />
                                         </Ellipse.Effect>
                                     </Ellipse>
-                                    <TextBlock Text="{Binding StatusText}" Margin="7,0,0,0" FontSize="12"
+                                    <TextBlock Text="{Binding StatusText}" Margin="7,0,0,0" FontSize="12" FontFamily="{StaticResource MonoFont}"
                                                Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Border>
@@ -206,14 +218,14 @@
                             <Border Grid.Column="0" Style="{StaticResource StatTile}">
                                 <StackPanel>
                                     <TextBlock Text="CPU使用率" Foreground="{StaticResource MutedTextBrush}" FontSize="11.5" />
-                                    <TextBlock Text="{Binding CpuText}" Foreground="{StaticResource TextBrush}"
+                                    <TextBlock Text="{Binding CpuText}" Foreground="{StaticResource TextBrush}" FontFamily="{StaticResource MonoFont}"
                                                FontSize="22" FontWeight="Bold" Margin="0,4,0,0" />
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="2" Style="{StaticResource StatTile}">
                                 <StackPanel>
                                     <TextBlock Text="メモリ使用量" Foreground="{StaticResource MutedTextBrush}" FontSize="11.5" />
-                                    <TextBlock Text="{Binding MemoryText}" Foreground="{StaticResource TextBrush}"
+                                    <TextBlock Text="{Binding MemoryText}" Foreground="{StaticResource TextBrush}" FontFamily="{StaticResource MonoFont}"
                                                FontSize="22" FontWeight="Bold" Margin="0,4,0,0" />
                                 </StackPanel>
                             </Border>
@@ -281,7 +293,7 @@
                                     <TextBlock Text="メモリ割り当て(MB)" Style="{StaticResource FieldLabel}" />
                                     <TextBox x:Name="MemoryBox" Width="90" Text="2048" />
                                     <Button x:Name="StartButton" Content="サーバーを起動" Margin="16,0,0,0"
-                                            Style="{StaticResource AccentButton}" Click="StartButton_Click" />
+                                            Style="{StaticResource StartButtonStyle}" Click="StartButton_Click" />
                                     <Button x:Name="StopButton" Content="サーバーを停止" Margin="8,0,0,0"
                                             Style="{StaticResource DangerButton}" Click="StopButton_Click" IsEnabled="False" />
                                 </StackPanel>
@@ -300,9 +312,9 @@
                                 <TextBlock Grid.Row="0" Text="コンソール" Style="{StaticResource SectionTitle}" />
 
                                 <Border Grid.Row="1" Background="{StaticResource LogBgBrush}" BorderBrush="{StaticResource BorderBrush}"
-                                        BorderThickness="1" CornerRadius="9" Padding="12" Margin="0,0,0,10">
+                                        BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,10">
                                     <TextBox x:Name="LogBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
-                                             HorizontalScrollBarVisibility="Auto" FontFamily="Cascadia Mono,Consolas" FontSize="12"
+                                             HorizontalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="12"
                                              TextWrapping="NoWrap" Background="Transparent" Foreground="{StaticResource LogTextBrush}"
                                              BorderThickness="0" />
                                 </Border>
@@ -314,13 +326,14 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox Grid.Column="0" x:Name="CommandBox" Margin="0,0,8,0" KeyDown="CommandBox_KeyDown" />
                                     <Button Grid.Column="1" x:Name="SendCommandButton" Content="送信"
-                                            Style="{StaticResource AccentButton}" Click="SendCommandButton_Click" />
+                                            Style="{StaticResource IndigoButtonStyle}" Click="SendCommandButton_Click" />
                                 </Grid>
                             </Grid>
                         </Border>
                     </Grid>
                 </ScrollViewer>
             </Grid>
+        </Grid>
         </Grid>
     </Grid>
 </Window>

@@ -91,7 +91,7 @@ public partial class MainWindow : Window
 
     private void ShowOverviewPage()
     {
-        OverviewNavItem.Background = (Brush)FindResource("AccentSoftBrush");
+        OverviewNavItem.Background = (Brush)FindResource("CardHoverBrush");
         OverviewNavItem.BorderBrush = (Brush)FindResource("AccentBrush");
         ContentScroller.Visibility = Visibility.Collapsed;
         OverviewScroller.Visibility = Visibility.Visible;
@@ -182,7 +182,7 @@ public partial class MainWindow : Window
     {
         if (_selected is null) return;
 
-        OverviewNavItem.Background = (Brush)FindResource("NeutralButtonBrush");
+        OverviewNavItem.Background = Brushes.Transparent;
         OverviewNavItem.BorderBrush = Brushes.Transparent;
         OverviewScroller.Visibility = Visibility.Collapsed;
         ContentScroller.Visibility = Visibility.Visible;

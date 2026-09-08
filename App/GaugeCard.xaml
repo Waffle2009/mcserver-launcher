@@ -10,7 +10,7 @@
             </Grid.RowDefinitions>
 
             <TextBlock x:Name="TitleText" Grid.Row="0" Foreground="{StaticResource MutedTextBrush}"
-                       FontSize="13" FontWeight="SemiBold" Margin="0,0,0,14" HorizontalAlignment="Left" />
+                       FontSize="12" FontWeight="SemiBold" Margin="0,0,0,14" HorizontalAlignment="Left" />
 
             <Grid Grid.Row="1" Margin="0,0,0,14">
                 <Grid.ColumnDefinitions>
@@ -18,14 +18,14 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock x:Name="ValueText" Grid.Column="0" Text="--" FontSize="26" FontWeight="Bold"
+                <TextBlock x:Name="ValueText" Grid.Column="0" Text="--" FontSize="24" FontWeight="Bold" FontFamily="{StaticResource MonoFont}"
                            Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
 
                 <Grid Grid.Column="1" Width="64" Height="64" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Ellipse Stroke="{StaticResource BorderBrush}" StrokeThickness="6" Width="64" Height="64" />
-                    <Path x:Name="ArcPath" Stroke="{StaticResource AccentBrush}" StrokeThickness="6"
+                    <Path x:Name="ArcPath" Stroke="{StaticResource AccentIndigoBrush}" StrokeThickness="6"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                    <TextBlock x:Name="PercentText" Text="--" FontSize="13" FontWeight="Bold"
+                    <TextBlock x:Name="PercentText" Text="--" FontSize="13" FontWeight="Bold" FontFamily="{StaticResource MonoFont}"
                                Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center"
                                VerticalAlignment="Center" />
                 </Grid>
