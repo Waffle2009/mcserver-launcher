@@ -24,7 +24,6 @@ public partial class MainWindow : Window
     private readonly UsageHistoryStore _usageHistory = new();
     private readonly DispatcherTimer _headerTimer;
     private ServerSession? _selected;
-    private bool _isLoadingSession;
     private long _lastTotalMemoryBytes;
     private string? _currentFileDir;
 
@@ -113,9 +112,6 @@ public partial class MainWindow : Window
         ShowOverviewPage();
     }
 
-    private ServerType SelectedServerType =>
-        Enum.Parse<ServerType>((string)((ComboBoxItem)ServerTypeCombo.SelectedItem).Tag);
-
     private static IServerProvider CreateProvider(ServerType type) => type switch
     {
         ServerType.Paper => new PaperProvider(),
@@ -182,7 +178,6 @@ public partial class MainWindow : Window
     private void PersistUiIntoSelected()
     {
         if (_selected is null) return;
-        _selected.Instance.InstallDir = InstallDirBox.Text;
         if (int.TryParse(MemoryBox.Text, out var mb) && mb > 0)
             _selected.Instance.MemoryMb = mb;
     }
@@ -207,47 +202,28 @@ public partial class MainWindow : Window
         ContentScroller.Visibility = Visibility.Visible;
         ContentPanel.DataContext = _selected;
 
-        _isLoadingSession = true;
-        try
-        {
-            var instance = _selected.Instance;
+        var instance = _selected.Instance;
 
-            SelectServerTypeCombo(instance.Type);
-            InstallDirBox.Text = instance.InstallDir;
-            MemoryBox.Text = instance.MemoryMb.ToString();
-            UpdateEulaVisibility();
+        MemoryBox.Text = instance.MemoryMb.ToString();
 
-            VersionCombo.Items.Clear();
-            if (!string.IsNullOrEmpty(instance.Version))
-            {
-                VersionCombo.Items.Add(instance.Version);
-                VersionCombo.SelectedIndex = 0;
-            }
+        LogBox.Text = _selected.LogBuffer;
+        LogBox.ScrollToEnd();
 
-            LogBox.Text = _selected.LogBuffer;
-            LogBox.ScrollToEnd();
+        _selected.IsRunning = _selected.ProcessManager.IsRunning;
+        var hasExecutable = instance.ExecutablePath is not null;
+        StartButton.IsEnabled = hasExecutable && !_selected.IsRunning;
+        StopButton.IsEnabled = _selected.IsRunning;
 
-            _selected.IsRunning = _selected.ProcessManager.IsRunning;
-            var hasExecutable = instance.ExecutablePath is not null;
-            StartButton.IsEnabled = hasExecutable && !_selected.IsRunning;
-            StopButton.IsEnabled = _selected.IsRunning;
+        ServerTabs.Visibility = hasExecutable ? Visibility.Visible : Visibility.Collapsed;
 
-            SetupCard.Visibility = hasExecutable ? Visibility.Collapsed : Visibility.Visible;
-            ServerTabs.Visibility = hasExecutable ? Visibility.Visible : Visibility.Collapsed;
-
-            _currentFileDir = instance.InstallDir;
-            AccessLogListView.ItemsSource = _selected.AccessLog;
-            LoadFileList();
-            LoadPropertiesList();
-            LoadPermissionsList();
-            LoadBackupsList();
-            LoadAddonsList();
-            RefreshHeaderStats();
-        }
-        finally
-        {
-            _isLoadingSession = false;
-        }
+        _currentFileDir = instance.InstallDir;
+        AccessLogListView.ItemsSource = _selected.AccessLog;
+        LoadFileList();
+        LoadPropertiesList();
+        LoadPermissionsList();
+        LoadBackupsList();
+        LoadAddonsList();
+        RefreshHeaderStats();
     }
 
     private void RefreshHeaderStats()
@@ -268,32 +244,6 @@ public partial class MainWindow : Window
         HeaderPortText.Text = port ?? "--";
     }
 
-    private void SelectServerTypeCombo(ServerType type)
-    {
-        foreach (ComboBoxItem item in ServerTypeCombo.Items)
-        {
-            if ((string)item.Tag == type.ToString())
-            {
-                ServerTypeCombo.SelectedItem = item;
-                return;
-            }
-        }
-    }
-
-    private void UpdateDefaultInstallDir()
-    {
-        var baseDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "McServerLauncher", "servers", SelectedServerType.ToString());
-        InstallDirBox.Text = baseDir;
-    }
-
-    private void UpdateEulaVisibility()
-    {
-        var isJava = SelectedServerType != ServerType.Bds;
-        EulaCheckBox.Visibility = isJava ? Visibility.Visible : Visibility.Collapsed;
-    }
-
     private void AddServerButton_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new AddServerDialog { Owner = this };
@@ -307,115 +257,6 @@ public partial class MainWindow : Window
         };
         AddSession(instance);
         SaveInstances();
-    }
-
-    private void ServerTypeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (!IsLoaded || _isLoadingSession || _selected is null) return;
-
-        _selected.Instance.Type = SelectedServerType;
-        _selected.Instance.ExecutablePath = null;
-        VersionCombo.Items.Clear();
-        UpdateDefaultInstallDir();
-        UpdateEulaVisibility();
-        StartButton.IsEnabled = false;
-        SaveInstances();
-    }
-
-    private async void RefreshVersionsButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_selected is null) return;
-        var session = _selected;
-
-        RefreshVersionsButton.IsEnabled = false;
-        VersionCombo.Items.Clear();
-        try
-        {
-            var provider = CreateProvider(SelectedServerType);
-            OnSessionOutput(session, $"{SelectedServerType} のバージョン一覧を取得しています...");
-            var versions = await provider.GetVersionsAsync();
-            foreach (var v in versions)
-                VersionCombo.Items.Add(v);
-            if (VersionCombo.Items.Count > 0)
-                VersionCombo.SelectedIndex = 0;
-            OnSessionOutput(session, $"{versions.Count} 件のバージョンを取得しました。");
-        }
-        catch (Exception ex)
-        {
-            OnSessionOutput(session, $"エラー: バージョン一覧の取得に失敗しました - {ex.Message}");
-        }
-        finally
-        {
-            RefreshVersionsButton.IsEnabled = true;
-        }
-    }
-
-    private void BrowseButton_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new Microsoft.Win32.OpenFolderDialog
-        {
-            InitialDirectory = Directory.Exists(InstallDirBox.Text) ? InstallDirBox.Text : null
-        };
-        if (dialog.ShowDialog() == true)
-            InstallDirBox.Text = dialog.FolderName;
-    }
-
-    private async void InstallButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_selected is null) return;
-        var session = _selected;
-
-        if (VersionCombo.SelectedItem is not string version)
-        {
-            MessageBox.Show("先にバージョン一覧を取得し、バージョンを選択してください。", "確認",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        var type = SelectedServerType;
-        if (type != ServerType.Bds && EulaCheckBox.IsChecked != true)
-        {
-            MessageBox.Show("Minecraft使用許諾契約(EULA)への同意が必要です。", "確認",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        InstallButton.IsEnabled = false;
-        try
-        {
-            var provider = CreateProvider(type);
-            var progress = new Progress<string>(line => OnSessionOutput(session, line));
-            var targetDir = InstallDirBox.Text;
-
-            var path = await provider.InstallAsync(version, targetDir, progress);
-
-            if (type != ServerType.Bds)
-                EulaHelper.Accept(targetDir);
-
-            if (!string.IsNullOrEmpty(session.Instance.LevelType))
-                ServerPropertiesFile.Save(targetDir, new[]
-                {
-                    new KeyValuePair<string, string>("level-type", session.Instance.LevelType)
-                });
-
-            session.Instance.Type = type;
-            session.Instance.InstallDir = targetDir;
-            session.Instance.Version = version;
-            session.Instance.ExecutablePath = path;
-            SaveInstances();
-
-            OnSessionOutput(session, $"インストール完了: {path}");
-            if (session == _selected)
-                StartButton.IsEnabled = true;
-        }
-        catch (Exception ex)
-        {
-            OnSessionOutput(session, $"エラー: インストールに失敗しました - {ex.Message}");
-        }
-        finally
-        {
-            InstallButton.IsEnabled = true;
-        }
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)

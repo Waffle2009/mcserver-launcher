@@ -487,16 +487,6 @@
                 </Setter>
             </Style>
 
-            <!-- Small chip used for header stat readouts (稼働時間/PID/ポート/バージョン) -->
-            <Style x:Key="HeaderChip" TargetType="Border">
-                <Setter Property="Padding" Value="9,5" />
-                <Setter Property="CornerRadius" Value="3" />
-                <Setter Property="Margin" Value="8,0,0,0" />
-                <Setter Property="Background" Value="{StaticResource NeutralButtonBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-                <Setter Property="BorderThickness" Value="1" />
-            </Style>
-
         </ResourceDictionary>
     </Application.Resources>
 </Application>
