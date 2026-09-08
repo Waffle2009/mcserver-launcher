@@ -215,7 +215,7 @@
                                         </Ellipse>
                                         <TextBlock Margin="7,0,0,0" FontSize="12.5" FontFamily="{StaticResource MonoFont}"
                                                    Foreground="{StaticResource TextBrush}" VerticalAlignment="Center">
-                                            <Run Text="{Binding StatusText}" />
+                                            <Run Text="{Binding StatusText, Mode=OneWay}" />
                                             <Run Text=" ・ " Foreground="{StaticResource MutedTextBrush}" />
                                             <Run Text="稼働 " Foreground="{StaticResource MutedTextBrush}" /><Run x:Name="HeaderUptimeText" Text="--" />
                                             <Run Text=" ・ " Foreground="{StaticResource MutedTextBrush}" />
