@@ -151,12 +151,23 @@ public partial class MainWindow : Window
                 PlayerName = entry.PlayerName,
                 EventText = entry.Joined ? "参加" : "退出"
             });
+
+            if (entry.Joined)
+            {
+                if (!session.ConnectedPlayers.Contains(entry.PlayerName))
+                    session.ConnectedPlayers.Add(entry.PlayerName);
+            }
+            else
+            {
+                session.ConnectedPlayers.Remove(entry.PlayerName);
+            }
         }
     }
 
     private void OnSessionExited(ServerSession session, int code)
     {
         session.IsRunning = false;
+        session.ConnectedPlayers.Clear();
         OnSessionOutput(session, $"--- サーバープロセスが終了しました (code={code}) ---");
         if (session == _selected)
         {
@@ -218,6 +229,10 @@ public partial class MainWindow : Window
 
         _currentFileDir = instance.InstallDir;
         AccessLogListView.ItemsSource = _selected.AccessLog;
+        PlayerSearchBox.Text = "";
+        var playersView = CollectionViewSource.GetDefaultView(_selected.ConnectedPlayers);
+        playersView.Filter = FilterConnectedPlayer;
+        ConnectedPlayersListView.ItemsSource = playersView;
         LoadFileList();
         LoadPropertiesList();
         LoadPermissionsList();
@@ -370,6 +385,15 @@ public partial class MainWindow : Window
         {
             OnSessionOutput(session, $"エラー: コマンド送信に失敗しました - {ex.Message}");
         }
+    }
+
+    private bool FilterConnectedPlayer(object obj) =>
+        string.IsNullOrEmpty(PlayerSearchBox.Text) ||
+        ((string)obj).Contains(PlayerSearchBox.Text, StringComparison.OrdinalIgnoreCase);
+
+    private void PlayerSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (ConnectedPlayersListView.ItemsSource is ICollectionView view) view.Refresh();
     }
 
     private async void RestartButton_Click(object sender, RoutedEventArgs e)

@@ -18,6 +18,7 @@ public sealed class ServerSession : INotifyPropertyChanged
     public ServerProcessManager ProcessManager { get; } = new();
     public string LogBuffer { get; set; } = "";
     public ObservableCollection<AccessLogRow> AccessLog { get; } = new();
+    public ObservableCollection<string> ConnectedPlayers { get; } = new();
 
     public ServerSession(ServerInstance instance)
     {

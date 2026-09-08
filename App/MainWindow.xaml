@@ -244,39 +244,90 @@
                         <!-- Tabbed detail view -->
                         <TabControl Grid.Row="1" x:Name="ServerTabs" SelectionChanged="ServerTabs_SelectionChanged">
                             <TabItem Header="コンソール">
-                                <Border Style="{StaticResource CardBorder}" Margin="0">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
-                                        <TextBlock Grid.Row="0" Text="コンソール" Style="{StaticResource SectionTitle}" />
+                                    <Border Grid.Row="0" Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
 
-                                        <Border Grid.Row="1" Background="{StaticResource LogBgBrush}" BorderBrush="{StaticResource BorderBrush}"
-                                                BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,10">
-                                            <TextBox x:Name="LogBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
-                                                     HorizontalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="12"
-                                                     TextWrapping="NoWrap" Background="Transparent" Foreground="{StaticResource LogTextBrush}"
-                                                     BorderThickness="0" />
-                                        </Border>
+                                            <TextBlock Grid.Row="0" Text="コンソール" Style="{StaticResource SectionTitle}" />
 
-                                        <Grid Grid.Row="2">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <Grid Grid.Column="0" Margin="0,0,8,0">
-                                                <TextBox x:Name="CommandBox" KeyDown="CommandBox_KeyDown" />
-                                                <TextBlock Text="コマンドを入力してEnter(例: say hello)" IsHitTestVisible="False"
+                                            <Border Grid.Row="1" Background="{StaticResource LogBgBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                                    BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,10">
+                                                <TextBox x:Name="LogBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
+                                                         HorizontalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                                         TextWrapping="NoWrap" Background="Transparent" Foreground="{StaticResource LogTextBrush}"
+                                                         BorderThickness="0" />
+                                            </Border>
+
+                                            <Grid Grid.Row="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid Grid.Column="0" Margin="0,0,8,0">
+                                                    <TextBox x:Name="CommandBox" KeyDown="CommandBox_KeyDown" />
+                                                    <TextBlock Text="コマンドを入力してEnter(例: say hello)" IsHitTestVisible="False"
+                                                               Foreground="{StaticResource MutedTextBrush}" FontSize="12"
+                                                               Margin="9,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Text, ElementName=CommandBox}" Value="">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                                <Button Grid.Column="1" x:Name="SendCommandButton" Content="送信"
+                                                        Style="{StaticResource IndigoButtonStyle}" Click="SendCommandButton_Click" />
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Connected players: live join/leave roster with name filter -->
+                                    <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <Grid Grid.Row="0" Margin="0,0,0,12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="接続中のプレイヤー" Style="{StaticResource SectionTitle}" Margin="0" />
+                                                <TextBlock Grid.Column="1" Foreground="{StaticResource MutedTextBrush}" FontSize="12"
+                                                           VerticalAlignment="Center">
+                                                    <Run Text="{Binding ConnectedPlayers.Count, Mode=OneWay}" />
+                                                    <Run Text="人" />
+                                                </TextBlock>
+                                            </Grid>
+
+                                            <Grid Grid.Row="1" Margin="0,0,0,4">
+                                                <TextBox x:Name="PlayerSearchBox" TextChanged="PlayerSearchBox_TextChanged" />
+                                                <TextBlock Text="プレイヤー名で検索" IsHitTestVisible="False"
                                                            Foreground="{StaticResource MutedTextBrush}" FontSize="12"
                                                            Margin="9,0,0,0" VerticalAlignment="Center">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Text, ElementName=CommandBox}" Value="">
+                                                                <DataTrigger Binding="{Binding Text, ElementName=PlayerSearchBox}" Value="">
                                                                     <Setter Property="Visibility" Value="Visible" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
@@ -284,11 +335,17 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
                                             </Grid>
-                                            <Button Grid.Column="1" x:Name="SendCommandButton" Content="送信"
-                                                    Style="{StaticResource IndigoButtonStyle}" Click="SendCommandButton_Click" />
+
+                                            <ListView Grid.Row="2" x:Name="ConnectedPlayersListView" MaxHeight="220">
+                                                <ListView.View>
+                                                    <GridView>
+                                                        <GridViewColumn Header="名前" Width="400" DisplayMemberBinding="{Binding}" />
+                                                    </GridView>
+                                                </ListView.View>
+                                            </ListView>
                                         </Grid>
-                                    </Grid>
-                                </Border>
+                                    </Border>
+                                </Grid>
                             </TabItem>
 
                             <TabItem Header="ファイル">
