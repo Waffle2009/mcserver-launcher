@@ -26,6 +26,7 @@ public partial class MainWindow : Window
     private ServerSession? _selected;
     private long _lastTotalMemoryBytes;
     private string? _currentFileDir;
+    private readonly HashSet<ServerSession> _downloading = new();
 
     public MainWindow()
     {
@@ -227,6 +228,16 @@ public partial class MainWindow : Window
 
         ServerTabs.Visibility = hasExecutable ? Visibility.Visible : Visibility.Collapsed;
         NoExecutableNotice.Visibility = hasExecutable ? Visibility.Collapsed : Visibility.Visible;
+        UpdateButton.IsEnabled = !_downloading.Contains(_selected);
+        if (!hasExecutable)
+        {
+            NoExecutableTitleText.Text = _downloading.Contains(_selected)
+                ? "サーバー本体をダウンロードしています..."
+                : "サーバー本体がまだダウンロードされていません";
+            NoExecutableSubText.Text = _downloading.Contains(_selected)
+                ? "しばらくお待ちください。"
+                : "右上の「更新」ボタンを押してサーバーを取得すると、コンソールなどの操作画面が表示されます。";
+        }
 
         _currentFileDir = instance.InstallDir;
         AccessLogListView.ItemsSource = _selected.AccessLog;
@@ -260,7 +271,7 @@ public partial class MainWindow : Window
         HeaderPortText.Text = port ?? "--";
     }
 
-    private void AddServerButton_Click(object sender, RoutedEventArgs e)
+    private async void AddServerButton_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new AddServerDialog { Owner = this };
         if (dialog.ShowDialog() != true) return;
@@ -271,8 +282,10 @@ public partial class MainWindow : Window
             Type = dialog.SelectedType,
             LevelType = dialog.SelectedLevelType
         };
-        AddSession(instance);
+        var session = AddSession(instance);
         SaveInstances();
+
+        await DownloadServerAsync(session);
     }
 
     private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -413,8 +426,7 @@ public partial class MainWindow : Window
 
         if (session.Instance.ExecutablePath is null)
         {
-            MessageBox.Show("先にサーバーを取得(ダウンロード)してください。", "確認",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            await DownloadServerAsync(session);
             return;
         }
 
@@ -425,11 +437,36 @@ public partial class MainWindow : Window
         var wasRunning = session.IsRunning;
         if (wasRunning) await StopSessionAsync(session);
 
-        UpdateButton.IsEnabled = false;
+        await DownloadServerAsync(session);
+
+        if (wasRunning) StartSession(session);
+    }
+
+    /// <summary>
+    /// サーバー本体を取得する。追加直後(ExecutablePathがnull)の自動取得と、
+    /// 更新ボタンからの再取得の両方から呼ばれる。
+    /// </summary>
+    private async Task DownloadServerAsync(ServerSession session)
+    {
+        void SetNotice(string title, string sub)
+        {
+            if (session != _selected) return;
+            NoExecutableTitleText.Text = title;
+            NoExecutableSubText.Text = sub;
+        }
+
+        _downloading.Add(session);
+        if (session == _selected) UpdateButton.IsEnabled = false;
+        SetNotice("サーバー本体をダウンロードしています...", "しばらくお待ちください。");
+
         try
         {
             var provider = CreateProvider(session.Instance.Type);
-            var progress = new Progress<string>(line => OnSessionOutput(session, line));
+            var progress = new Progress<string>(line =>
+            {
+                OnSessionOutput(session, line);
+                SetNotice("サーバー本体をダウンロードしています...", line);
+            });
             OnSessionOutput(session, "最新バージョンを確認しています...");
             var versions = await provider.GetVersionsAsync();
             var latest = versions.FirstOrDefault();
@@ -440,7 +477,7 @@ public partial class MainWindow : Window
             session.Instance.Version = latest;
             session.Instance.ExecutablePath = path;
             SaveInstances();
-            OnSessionOutput(session, $"更新完了: {latest}");
+            OnSessionOutput(session, $"ダウンロード完了: {latest}");
 
             if (session == _selected)
             {
@@ -452,12 +489,14 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            OnSessionOutput(session, $"エラー: 更新に失敗しました - {ex.Message}");
+            OnSessionOutput(session, $"エラー: サーバー本体のダウンロードに失敗しました - {ex.Message}");
+            SetNotice("サーバー本体のダウンロードに失敗しました",
+                $"{ex.Message}\n右上の「更新」ボタンでもう一度お試しください。");
         }
         finally
         {
-            UpdateButton.IsEnabled = true;
-            if (wasRunning) StartSession(session);
+            _downloading.Remove(session);
+            if (session == _selected) UpdateButton.IsEnabled = true;
         }
     }
 
@@ -486,6 +525,7 @@ public partial class MainWindow : Window
         }
 
         _sessions.Remove(session);
+        _downloading.Remove(session);
         session.ProcessManager.Dispose();
         SaveInstances();
 

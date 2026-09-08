@@ -245,9 +245,9 @@
                         <Border Grid.Row="1" x:Name="NoExecutableNotice" Style="{StaticResource CardBorder}"
                                 Visibility="Collapsed" VerticalAlignment="Top">
                             <StackPanel HorizontalAlignment="Center" Margin="0,30">
-                                <TextBlock Text="サーバー本体がまだダウンロードされていません" FontSize="14" FontWeight="Bold"
+                                <TextBlock x:Name="NoExecutableTitleText" Text="サーバー本体がまだダウンロードされていません" FontSize="14" FontWeight="Bold"
                                            Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center" />
-                                <TextBlock Text="右上の「更新」ボタンを押してサーバーを取得すると、コンソールなどの操作画面が表示されます。"
+                                <TextBlock x:Name="NoExecutableSubText" Text="右上の「更新」ボタンを押してサーバーを取得すると、コンソールなどの操作画面が表示されます。"
                                            Foreground="{StaticResource MutedTextBrush}" FontSize="12.5" Margin="0,8,0,0"
                                            HorizontalAlignment="Center" />
                             </StackPanel>
