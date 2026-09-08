@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private readonly UsageHistoryStore _usageHistory = new();
     private ServerSession? _selected;
     private bool _isLoadingSession;
+    private long _lastTotalMemoryBytes;
 
     public MainWindow()
     {
@@ -36,7 +37,7 @@ public partial class MainWindow : Window
         SystemCpuGauge.Title = "全体CPU使用率";
         SystemMemGauge.Title = "全体メモリ使用率";
         RunningCountGauge.Title = "BDS合計CPU使用率";
-        TotalServerCpuGauge.Title = "CPU温度";
+        TotalServerCpuGauge.Title = "BDS合計メモリ使用率";
         CpuHistoryChart.SetProvider(_usageHistory.GetSamples);
 
         _systemUsageMonitor.UsageUpdated += usage => Dispatcher.Invoke(() => OnSystemUsageUpdated(usage));
@@ -73,16 +74,19 @@ public partial class MainWindow : Window
         SystemMemGauge.SetValue(memPercent, $"{usedGb:0.0}/{totalGb:0.0}GB");
         _usageHistory.AddSample(usage.CpuPercent, memPercent);
 
-        if (usage.CpuTemperatureCelsius is { } temp)
-            TotalServerCpuGauge.SetValue(temp, $"{temp:0}°C");
-        else
-            TotalServerCpuGauge.SetValue(0, "--");
+        _lastTotalMemoryBytes = usage.TotalMemoryBytes;
+        UpdateAggregateGauges();
     }
 
     private void UpdateAggregateGauges()
     {
         var bdsCpu = _sessions.Where(s => s.IsRunning && s.Instance.Type == ServerType.Bds).Sum(s => s.CpuPercent);
         RunningCountGauge.SetValue(Math.Min(bdsCpu, 100), $"{bdsCpu:0}%");
+
+        var bdsMemory = _sessions.Where(s => s.IsRunning && s.Instance.Type == ServerType.Bds).Sum(s => s.MemoryBytes);
+        var bdsMemGb = bdsMemory / 1024.0 / 1024.0 / 1024.0;
+        var bdsMemPercent = _lastTotalMemoryBytes > 0 ? bdsMemory * 100.0 / _lastTotalMemoryBytes : 0;
+        TotalServerCpuGauge.SetValue(bdsMemPercent, $"{bdsMemGb:0.0}GB");
     }
 
     private void ShowOverviewPage()
