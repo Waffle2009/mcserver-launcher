@@ -180,59 +180,87 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="380" />
+                            <RowDefinition Height="420" />
                         </Grid.RowDefinitions>
 
-                        <!-- Status header -->
-                        <Grid Grid.Row="0" Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="17" FontWeight="Bold"
-                                       Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
-                            <Border Grid.Column="1" Padding="10,5" CornerRadius="3" VerticalAlignment="Center"
-                                    Background="{StaticResource NeutralButtonBrush}"
-                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="9" Height="9" VerticalAlignment="Center" Style="{StaticResource StatusDotStyle}">
-                                        <Ellipse.Effect>
-                                            <DropShadowEffect Color="#4CAF50" BlurRadius="8" ShadowDepth="0" Opacity="0.9" />
-                                        </Ellipse.Effect>
-                                    </Ellipse>
-                                    <TextBlock Text="{Binding StatusText}" Margin="7,0,0,0" FontSize="12" FontFamily="{StaticResource MonoFont}"
+                        <!-- Status header: name, live stat chips and per-server actions -->
+                        <Border Grid.Row="0" Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="17" FontWeight="Bold"
                                                Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button x:Name="StartButton" Content="起動" Margin="0,0,8,0"
+                                                Style="{StaticResource StartButtonStyle}" Click="StartButton_Click" />
+                                        <Button x:Name="StopButton" Content="停止" Margin="0,0,8,0"
+                                                Style="{StaticResource DangerButton}" Click="StopButton_Click" IsEnabled="False" />
+                                        <Button x:Name="RestartButton" Content="再起動" Margin="0,0,8,0"
+                                                Style="{StaticResource RestartButtonStyle}" Click="RestartButton_Click" />
+                                        <Button x:Name="UpdateButton" Content="更新" Margin="0,0,8,0"
+                                                Style="{StaticResource IndigoButtonStyle}" Click="UpdateButton_Click" />
+                                        <Button x:Name="DeleteServerButton" Content="削除"
+                                                Style="{StaticResource DangerButton}" Click="DeleteServerButton_Click" />
+                                    </StackPanel>
+                                </Grid>
 
-                        <!-- Stat tiles -->
-                        <Grid Grid.Row="1" Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="14" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Style="{StaticResource StatTile}">
-                                <StackPanel>
-                                    <TextBlock Text="CPU使用率" Foreground="{StaticResource MutedTextBrush}" FontSize="11.5" />
-                                    <TextBlock Text="{Binding CpuText}" Foreground="{StaticResource TextBrush}" FontFamily="{StaticResource MonoFont}"
-                                               FontSize="22" FontWeight="Bold" Margin="0,4,0,0" />
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="2" Style="{StaticResource StatTile}">
-                                <StackPanel>
-                                    <TextBlock Text="メモリ使用量" Foreground="{StaticResource MutedTextBrush}" FontSize="11.5" />
-                                    <TextBlock Text="{Binding MemoryText}" Foreground="{StaticResource TextBrush}" FontFamily="{StaticResource MonoFont}"
-                                               FontSize="22" FontWeight="Bold" Margin="0,4,0,0" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
+                                <WrapPanel Margin="0,12,0,0">
+                                    <Border Style="{StaticResource HeaderChip}" Margin="0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Ellipse Width="9" Height="9" VerticalAlignment="Center" Style="{StaticResource StatusDotStyle}">
+                                                <Ellipse.Effect>
+                                                    <DropShadowEffect Color="#4CAF50" BlurRadius="8" ShadowDepth="0" Opacity="0.9" />
+                                                </Ellipse.Effect>
+                                            </Ellipse>
+                                            <TextBlock Text="{Binding StatusText}" Margin="7,0,0,0" FontSize="12" FontFamily="{StaticResource MonoFont}"
+                                                       Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource HeaderChip}">
+                                        <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
+                                            <Run Text="CPU " Foreground="{StaticResource MutedTextBrush}" />
+                                            <Run Text="{Binding CpuText}" />
+                                        </TextBlock>
+                                    </Border>
+                                    <Border Style="{StaticResource HeaderChip}">
+                                        <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
+                                            <Run Text="メモリ " Foreground="{StaticResource MutedTextBrush}" />
+                                            <Run Text="{Binding MemoryText}" />
+                                        </TextBlock>
+                                    </Border>
+                                    <Border Style="{StaticResource HeaderChip}">
+                                        <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
+                                            <Run Text="稼働時間 " Foreground="{StaticResource MutedTextBrush}" />
+                                            <Run x:Name="HeaderUptimeText" Text="--" />
+                                        </TextBlock>
+                                    </Border>
+                                    <Border Style="{StaticResource HeaderChip}">
+                                        <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
+                                            <Run Text="PID " Foreground="{StaticResource MutedTextBrush}" />
+                                            <Run x:Name="HeaderPidText" Text="--" />
+                                        </TextBlock>
+                                    </Border>
+                                    <Border Style="{StaticResource HeaderChip}">
+                                        <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
+                                            <Run Text="ポート " Foreground="{StaticResource MutedTextBrush}" />
+                                            <Run x:Name="HeaderPortText" Text="--" />
+                                        </TextBlock>
+                                    </Border>
+                                    <Border Style="{StaticResource HeaderChip}">
+                                        <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
+                                            <Run Text="バージョン " Foreground="{StaticResource MutedTextBrush}" />
+                                            <Run x:Name="HeaderVersionText" Text="--" />
+                                        </TextBlock>
+                                    </Border>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
 
-                        <!-- Server setup card -->
-                        <Border Grid.Row="2" Style="{StaticResource CardBorder}">
+                        <!-- Server setup card: only shown before the server jar/exe has been installed -->
+                        <Border Grid.Row="1" x:Name="SetupCard" Style="{StaticResource CardBorder}">
                             <StackPanel>
                                 <TextBlock Text="サーバーの準備" Style="{StaticResource SectionTitle}" />
 
@@ -285,51 +313,254 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Run card -->
-                        <Border Grid.Row="3" Style="{StaticResource CardBorder}">
-                            <StackPanel>
-                                <TextBlock Text="起動 / 停止" Style="{StaticResource SectionTitle}" />
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="メモリ割り当て(MB)" Style="{StaticResource FieldLabel}" />
-                                    <TextBox x:Name="MemoryBox" Width="90" Text="2048" />
-                                    <Button x:Name="StartButton" Content="サーバーを起動" Margin="16,0,0,0"
-                                            Style="{StaticResource StartButtonStyle}" Click="StartButton_Click" />
-                                    <Button x:Name="StopButton" Content="サーバーを停止" Margin="8,0,0,0"
-                                            Style="{StaticResource DangerButton}" Click="StopButton_Click" IsEnabled="False" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
+                        <!-- Tabbed detail view -->
+                        <TabControl Grid.Row="2" x:Name="ServerTabs" SelectionChanged="ServerTabs_SelectionChanged">
+                            <TabItem Header="コンソール">
+                                <Border Style="{StaticResource CardBorder}" Margin="0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
 
-                        <!-- Console card -->
-                        <Border Grid.Row="4" Style="{StaticResource CardBorder}" Margin="0">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                                        <Border Grid.Row="0" Background="{StaticResource LogBgBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,10">
+                                            <TextBox x:Name="LogBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
+                                                     HorizontalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                                     TextWrapping="NoWrap" Background="Transparent" Foreground="{StaticResource LogTextBrush}"
+                                                     BorderThickness="0" />
+                                        </Border>
 
-                                <TextBlock Grid.Row="0" Text="コンソール" Style="{StaticResource SectionTitle}" />
-
-                                <Border Grid.Row="1" Background="{StaticResource LogBgBrush}" BorderBrush="{StaticResource BorderBrush}"
-                                        BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,10">
-                                    <TextBox x:Name="LogBox" IsReadOnly="True" VerticalScrollBarVisibility="Auto"
-                                             HorizontalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="12"
-                                             TextWrapping="NoWrap" Background="Transparent" Foreground="{StaticResource LogTextBrush}"
-                                             BorderThickness="0" />
+                                        <Grid Grid.Row="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" x:Name="CommandBox" Margin="0,0,8,0" KeyDown="CommandBox_KeyDown" />
+                                            <Button Grid.Column="1" x:Name="SendCommandButton" Content="送信"
+                                                    Style="{StaticResource IndigoButtonStyle}" Click="SendCommandButton_Click" />
+                                        </Grid>
+                                    </Grid>
                                 </Border>
+                            </TabItem>
 
-                                <Grid Grid.Row="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" x:Name="CommandBox" Margin="0,0,8,0" KeyDown="CommandBox_KeyDown" />
-                                    <Button Grid.Column="1" x:Name="SendCommandButton" Content="送信"
-                                            Style="{StaticResource IndigoButtonStyle}" Click="SendCommandButton_Click" />
-                                </Grid>
-                            </Grid>
-                        </Border>
+                            <TabItem Header="ファイル">
+                                <Border Style="{StaticResource CardBorder}" Margin="0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" x:Name="FilePathText" Text="/" VerticalAlignment="Center"
+                                                       FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                                       Foreground="{StaticResource MutedTextBrush}" TextTrimming="CharacterEllipsis" />
+                                            <Button Grid.Column="1" x:Name="FileUpButton" Content="上へ" Margin="0,0,8,0"
+                                                    Style="{StaticResource BaseButton}" Click="FileUpButton_Click" />
+                                            <Button Grid.Column="2" x:Name="OpenInExplorerButton" Content="エクスプローラーで開く"
+                                                    Style="{StaticResource BaseButton}" Click="OpenInExplorerButton_Click" />
+                                        </Grid>
+
+                                        <ListView Grid.Row="1" x:Name="FileListView" MouseDoubleClick="FileListView_MouseDoubleClick">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="名前" Width="380" DisplayMemberBinding="{Binding Name}" />
+                                                    <GridViewColumn Header="種類" Width="90" DisplayMemberBinding="{Binding TypeText}" />
+                                                    <GridViewColumn Header="サイズ" Width="110" DisplayMemberBinding="{Binding SizeText}" />
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
+
+                                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                            <Button x:Name="FileDeleteButton" Content="削除" Style="{StaticResource DangerButton}"
+                                                    Click="FileDeleteButton_Click" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </TabItem>
+
+                            <TabItem Header="設定">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <Border Style="{StaticResource CardBorder}">
+                                            <StackPanel>
+                                                <TextBlock Text="起動設定" Style="{StaticResource SectionTitle}" />
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="メモリ割り当て(MB)" Style="{StaticResource FieldLabel}" />
+                                                    <TextBox x:Name="MemoryBox" Width="90" Text="2048" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Border Style="{StaticResource CardBorder}" Margin="0">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,10">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="server.properties" Style="{StaticResource SectionTitle}" Margin="0" />
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                        <Button x:Name="ReloadPropertiesButton" Content="再読み込み" Margin="0,0,8,0"
+                                                                Style="{StaticResource BaseButton}" Click="ReloadPropertiesButton_Click" />
+                                                        <Button x:Name="SavePropertiesButton" Content="保存"
+                                                                Style="{StaticResource AccentButton}" Click="SavePropertiesButton_Click" />
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <ListView x:Name="PropertiesListView" MaxHeight="320">
+                                                    <ListView.View>
+                                                        <GridView>
+                                                            <GridViewColumn Header="項目" Width="220" DisplayMemberBinding="{Binding Key}" />
+                                                            <GridViewColumn Header="値" Width="320">
+                                                                <GridViewColumn.CellTemplate>
+                                                                    <DataTemplate>
+                                                                        <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                                                                    </DataTemplate>
+                                                                </GridViewColumn.CellTemplate>
+                                                            </GridViewColumn>
+                                                        </GridView>
+                                                    </ListView.View>
+                                                </ListView>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+
+                            <TabItem Header="権限">
+                                <Border Style="{StaticResource CardBorder}" Margin="0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" x:Name="PermissionNameBox" Margin="0,0,8,0" />
+                                            <Button Grid.Column="1" x:Name="AddPermissionButton" Content="OPとして追加"
+                                                    Style="{StaticResource AccentButton}" Click="AddPermissionButton_Click" />
+                                        </Grid>
+
+                                        <ListView Grid.Row="1" x:Name="PermissionsListView">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="名前 / XUID" Width="280" DisplayMemberBinding="{Binding Name}" />
+                                                    <GridViewColumn Header="レベル" Width="140" DisplayMemberBinding="{Binding Level}" />
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
+
+                                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                            <Button x:Name="RemovePermissionButton" Content="削除" Style="{StaticResource DangerButton}"
+                                                    Click="RemovePermissionButton_Click" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </TabItem>
+
+                            <TabItem Header="バックアップ">
+                                <Border Style="{StaticResource CardBorder}" Margin="0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Button Grid.Row="0" x:Name="CreateBackupButton" Content="バックアップを作成"
+                                                HorizontalAlignment="Left" Margin="0,0,0,10"
+                                                Style="{StaticResource AccentButton}" Click="CreateBackupButton_Click" />
+
+                                        <ListView Grid.Row="1" x:Name="BackupsListView">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="名前" Width="260" DisplayMemberBinding="{Binding FileName}" />
+                                                    <GridViewColumn Header="作成日時" Width="160" DisplayMemberBinding="{Binding CreatedAtText}" />
+                                                    <GridViewColumn Header="サイズ" Width="110" DisplayMemberBinding="{Binding SizeText}" />
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
+
+                                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                            <Button x:Name="RestoreBackupButton" Content="復元" Margin="0,0,8,0"
+                                                    Style="{StaticResource RestartButtonStyle}" Click="RestoreBackupButton_Click" />
+                                            <Button x:Name="DeleteBackupButton" Content="削除" Style="{StaticResource DangerButton}"
+                                                    Click="DeleteBackupButton_Click" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </TabItem>
+
+                            <TabItem Header="アドオン">
+                                <Border Style="{StaticResource CardBorder}" Margin="0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Button Grid.Row="0" x:Name="AddAddonButton" Content="追加..."
+                                                HorizontalAlignment="Left" Margin="0,0,0,10"
+                                                Style="{StaticResource AccentButton}" Click="AddAddonButton_Click" />
+
+                                        <ListView Grid.Row="1" x:Name="AddonsListView">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="名前" Width="360" DisplayMemberBinding="{Binding Name}" />
+                                                    <GridViewColumn Header="状態" Width="120" DisplayMemberBinding="{Binding StatusText}" />
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
+
+                                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                                            <Button x:Name="ToggleAddonButton" Content="有効/無効切替" Margin="0,0,8,0"
+                                                    Style="{StaticResource RestartButtonStyle}" Click="ToggleAddonButton_Click" />
+                                            <Button x:Name="DeleteAddonButton" Content="削除" Style="{StaticResource DangerButton}"
+                                                    Click="DeleteAddonButton_Click" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </TabItem>
+
+                            <TabItem Header="アクセスログ">
+                                <Border Style="{StaticResource CardBorder}" Margin="0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="*" />
+                                        </Grid.RowDefinitions>
+
+                                        <Button Grid.Row="0" x:Name="ClearAccessLogButton" Content="クリア"
+                                                HorizontalAlignment="Left" Margin="0,0,0,10"
+                                                Style="{StaticResource BaseButton}" Click="ClearAccessLogButton_Click" />
+
+                                        <ListView Grid.Row="1" x:Name="AccessLogListView">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="時刻" Width="140" DisplayMemberBinding="{Binding TimeText}" />
+                                                    <GridViewColumn Header="プレイヤー" Width="220" DisplayMemberBinding="{Binding PlayerName}" />
+                                                    <GridViewColumn Header="種別" Width="100" DisplayMemberBinding="{Binding EventText}" />
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
+                                    </Grid>
+                                </Border>
+                            </TabItem>
+                        </TabControl>
                     </Grid>
                 </ScrollViewer>
             </Grid>

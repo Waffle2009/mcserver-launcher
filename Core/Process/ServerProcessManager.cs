@@ -16,6 +16,10 @@ public sealed class ServerProcessManager : IDisposable
 
     public bool IsRunning => _process is { HasExited: false };
 
+    public int? ProcessId => _process is { HasExited: false } p ? p.Id : null;
+
+    public DateTime? StartedAtUtc { get; private set; }
+
     public void Start(ServerType type, string executablePath, int memoryMb = 2048)
     {
         if (IsRunning)
@@ -53,11 +57,13 @@ public sealed class ServerProcessManager : IDisposable
         _process.ErrorDataReceived += (_, e) => { if (e.Data != null) OutputReceived?.Invoke(e.Data); };
         _process.Exited += (_, _) =>
         {
+            StartedAtUtc = null;
             StopUsageMonitor();
             Exited?.Invoke(_process.ExitCode);
         };
 
         _process.Start();
+        StartedAtUtc = DateTime.UtcNow;
         _process.BeginOutputReadLine();
         _process.BeginErrorReadLine();
         StartUsageMonitor();

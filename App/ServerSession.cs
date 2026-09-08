@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using McServerLauncher.Core.Instances;
@@ -16,6 +17,7 @@ public sealed class ServerSession : INotifyPropertyChanged
     public ServerInstance Instance { get; }
     public ServerProcessManager ProcessManager { get; } = new();
     public string LogBuffer { get; set; } = "";
+    public ObservableCollection<AccessLogRow> AccessLog { get; } = new();
 
     public ServerSession(ServerInstance instance)
     {
