@@ -241,6 +241,18 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Shown instead of the tabs until the server jar has been downloaded -->
+                        <Border Grid.Row="1" x:Name="NoExecutableNotice" Style="{StaticResource CardBorder}"
+                                Visibility="Collapsed" VerticalAlignment="Top">
+                            <StackPanel HorizontalAlignment="Center" Margin="0,30">
+                                <TextBlock Text="サーバー本体がまだダウンロードされていません" FontSize="14" FontWeight="Bold"
+                                           Foreground="{StaticResource TextBrush}" HorizontalAlignment="Center" />
+                                <TextBlock Text="右上の「更新」ボタンを押してサーバーを取得すると、コンソールなどの操作画面が表示されます。"
+                                           Foreground="{StaticResource MutedTextBrush}" FontSize="12.5" Margin="0,8,0,0"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+
                         <!-- Tabbed detail view -->
                         <TabControl Grid.Row="1" x:Name="ServerTabs" SelectionChanged="ServerTabs_SelectionChanged">
                             <TabItem Header="コンソール">

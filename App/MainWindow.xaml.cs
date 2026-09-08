@@ -226,6 +226,7 @@ public partial class MainWindow : Window
         StopButton.IsEnabled = _selected.IsRunning;
 
         ServerTabs.Visibility = hasExecutable ? Visibility.Visible : Visibility.Collapsed;
+        NoExecutableNotice.Visibility = hasExecutable ? Visibility.Collapsed : Visibility.Visible;
 
         _currentFileDir = instance.InstallDir;
         AccessLogListView.ItemsSource = _selected.AccessLog;
@@ -442,7 +443,12 @@ public partial class MainWindow : Window
             OnSessionOutput(session, $"更新完了: {latest}");
 
             if (session == _selected)
+            {
                 RefreshHeaderStats();
+                StartButton.IsEnabled = !session.IsRunning;
+                ServerTabs.Visibility = Visibility.Visible;
+                NoExecutableNotice.Visibility = Visibility.Collapsed;
+            }
         }
         catch (Exception ex)
         {
