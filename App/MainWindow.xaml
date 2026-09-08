@@ -222,13 +222,13 @@
                                     <Border Style="{StaticResource HeaderChip}">
                                         <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
                                             <Run Text="CPU " Foreground="{StaticResource MutedTextBrush}" />
-                                            <Run Text="{Binding CpuText}" />
+                                            <Run Text="{Binding CpuText, Mode=OneWay}" />
                                         </TextBlock>
                                     </Border>
                                     <Border Style="{StaticResource HeaderChip}">
                                         <TextBlock FontSize="12" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextBrush}">
                                             <Run Text="メモリ " Foreground="{StaticResource MutedTextBrush}" />
-                                            <Run Text="{Binding MemoryText}" />
+                                            <Run Text="{Binding MemoryText, Mode=OneWay}" />
                                         </TextBlock>
                                     </Border>
                                     <Border Style="{StaticResource HeaderChip}">
