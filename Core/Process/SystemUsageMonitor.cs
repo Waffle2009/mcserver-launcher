@@ -1,6 +1,6 @@
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using LibreHardwareMonitor.Hardware;
 
 [assembly: SupportedOSPlatform("windows")]
 
@@ -12,6 +12,7 @@ public readonly record struct SystemUsage(double CpuPercent, long UsedMemoryByte
 public sealed class SystemUsageMonitor : IDisposable
 {
     private readonly System.Threading.Timer _timer;
+    private readonly Computer? _hardwareMonitor;
     private long _lastIdleTicks;
     private long _lastTotalTicks;
     private bool _hasSample;
@@ -22,6 +23,17 @@ public sealed class SystemUsageMonitor : IDisposable
 
     public SystemUsageMonitor()
     {
+        try
+        {
+            _hardwareMonitor = new Computer { IsCpuEnabled = true };
+            _hardwareMonitor.Open();
+        }
+        catch
+        {
+            // 管理者権限がない等でハードウェアセンサーにアクセスできない場合は温度取得を諦める
+            _hardwareMonitor = null;
+        }
+
         _timer = new System.Threading.Timer(_ => Sample(), null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
@@ -58,32 +70,54 @@ public sealed class SystemUsageMonitor : IDisposable
         UsageUpdated?.Invoke(new SystemUsage(cpuPercent, usedMemory, totalMemory, _lastTemperature));
     }
 
-    private static double? ReadCpuTemperatureCelsius()
+    private double? ReadCpuTemperatureCelsius()
     {
+        if (_hardwareMonitor is null) return null;
+
         try
         {
-            using var searcher = new ManagementObjectSearcher(@"root\WMI",
-                "SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature");
-            foreach (ManagementBaseObject obj in searcher.Get())
+            double? package = null;
+            double? coreAverage = null;
+            var coreSum = 0.0;
+            var coreCount = 0;
+
+            foreach (var hardware in _hardwareMonitor.Hardware)
             {
-                using (obj)
+                if (hardware.HardwareType != HardwareType.Cpu) continue;
+
+                hardware.Update();
+                foreach (var sensor in hardware.Sensors)
                 {
-                    var tenthsOfKelvin = Convert.ToDouble(obj["CurrentTemperature"]);
-                    return tenthsOfKelvin / 10.0 - 273.15;
+                    if (sensor.SensorType != SensorType.Temperature || sensor.Value is not { } value) continue;
+
+                    if (sensor.Name.Contains("Package", StringComparison.OrdinalIgnoreCase))
+                        package = value;
+                    else if (sensor.Name.Contains("Core", StringComparison.OrdinalIgnoreCase))
+                    {
+                        coreSum += value;
+                        coreCount++;
+                    }
                 }
             }
+
+            if (coreCount > 0) coreAverage = coreSum / coreCount;
+            return package ?? coreAverage;
         }
         catch
         {
-            // 多くのPCではACPI経由の温度情報が公開されておらず取得できないため、その場合は未取得扱いにする
+            // センサーへのアクセスに失敗した場合は未取得扱いにする
+            return null;
         }
-        return null;
     }
 
     private static long ToTicks(System.Runtime.InteropServices.ComTypes.FILETIME ft) =>
         ((long)ft.dwHighDateTime << 32) | (uint)ft.dwLowDateTime;
 
-    public void Dispose() => _timer.Dispose();
+    public void Dispose()
+    {
+        _timer.Dispose();
+        _hardwareMonitor?.Close();
+    }
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool GetSystemTimes(
