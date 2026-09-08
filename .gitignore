@@ -4,3 +4,4 @@ publish-win-x64/
 *.zip
 .vs/
 *.user
+Releases/
